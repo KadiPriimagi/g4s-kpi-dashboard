@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "build": "prisma generate && next build",
+    "start": "prisma migrate deploy && npm run db:seed && next start",
+    "db:seed": "tsx prisma/seed.ts",
+    "lint": "eslint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",
@@ -43,5 +45,8 @@
     "@prisma/engines@6.19.3": true,
     "esbuild@0.28.2": true,
     "unrs-resolver@1.12.2": true
+  },
+  "engines": {
+    "node": ">=20.9"
   }
 }

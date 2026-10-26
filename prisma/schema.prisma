@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// One row per day × channel × campaign × language × source/medium.
+model DailyMetric {
+  id               Int      @id @default(autoincrement())
+  date             DateTime @db.Date
+  channel          String
+  campaign         String
+  language         String // "ET" | "RU"
+  source           String
+  medium           String
+  sessions         Int
+  servicePageViews Int
+  formViews        Int
+  formStarts       Int
+  leads            Int
+  /// Ad cost in EUR. Only Google PMax and Google Search have cost here; Meta cost comes from CostEntry.
+  cost             Decimal  @default(0) @db.Decimal(12, 2)
+
+  @@index([date])
+  @@index([channel, date])
+  @@index([campaign, date])
+}
+
+/// Manually entered ad cost for a period (e.g. Meta invoices from the media agency).
+model CostEntry {
+  id        Int      @id @default(autoincrement())
+  dateFrom  DateTime @db.Date
+  dateTo    DateTime @db.Date
+  channel   String
+  campaign  String
+  language  String   @default("BOTH") // "ET" | "RU" | "BOTH"
+  amount    Decimal  @db.Decimal(12, 2)
+  note      String?
+  /// Created by the demo seed; regenerated when the demo data is topped up.
+  isSeed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([dateFrom, dateTo])
+}
+
+model Target {
+  id        Int      @id @default(autoincrement())
+  /// "leads" | "sessions" | "cost" | "conversionRate" | "cpl"
+  metric    String
+  /// Channel name or "All"
+  channel   String
+  /// "YYYY-MM"
+  month     String
+  value     Decimal  @db.Decimal(12, 4)
+  isSeed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([metric, channel, month])
+}
+
+model AiSummary {
+  id        Int      @id @default(autoincrement())
+  dateFrom  DateTime @db.Date
+  dateTo    DateTime @db.Date
+  filters   Json
+  /// JSON string: { summary, findings[], recommendations[] }
+  content   String
+  isMock    Boolean  @default(false)
+  model     String?
+  createdAt DateTime @default(now())
+}
