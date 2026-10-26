@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { FilterBar } from "@/components/layout/filter-bar";
+import { Footer } from "@/components/layout/footer";
 import { MobileNav, Sidebar } from "@/components/layout/sidebar";
 
 // Every dashboard page reads the database at request time (never at build time).
@@ -9,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="lg:pl-60">
+      <div className="flex min-h-screen flex-col lg:pl-60">
         <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
           <div className="flex items-start gap-2 px-4 py-3 md:px-6">
             <MobileNav />
@@ -18,7 +19,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Suspense>
           </div>
         </header>
-        <main className="px-4 py-6 md:px-6">{children}</main>
+        <main className="flex-1 px-4 py-6 md:px-6">{children}</main>
+        <Footer />
       </div>
     </div>
   );
