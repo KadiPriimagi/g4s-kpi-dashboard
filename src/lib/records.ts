@@ -1,5 +1,6 @@
 import "server-only";
-import type { CostEntry, Target } from "@prisma/client";
+import type { AiSummary, CostEntry, Target } from "@prisma/client";
+import type { SummaryContent } from "./ai";
 import { prisma } from "./db";
 import { toISODate } from "./dates";
 
@@ -55,4 +56,43 @@ export async function listTargets() {
 export async function listCosts() {
   const rows = await prisma.costEntry.findMany({ orderBy: [{ dateFrom: "desc" }, { campaign: "asc" }, { id: "desc" }] });
   return rows.map(costDTO);
+}
+
+export interface SummaryDTO {
+  id: number;
+  dateFrom: string;
+  dateTo: string;
+  filters: { campaign: string | null; language: string | null };
+  content: SummaryContent | null;
+  /** Raw text when the stored content is not valid JSON. */
+  rawContent: string | null;
+  isMock: boolean;
+  model: string | null;
+  createdAt: string;
+}
+
+export const summaryDTO = (s: AiSummary): SummaryDTO => {
+  let content: SummaryDTO["content"] = null;
+  try {
+    content = JSON.parse(s.content);
+  } catch {
+    content = null;
+  }
+  const filters = (s.filters ?? {}) as { campaign?: string | null; language?: string | null };
+  return {
+    id: s.id,
+    dateFrom: toISODate(s.dateFrom),
+    dateTo: toISODate(s.dateTo),
+    filters: { campaign: filters.campaign ?? null, language: filters.language ?? null },
+    content,
+    rawContent: content ? null : s.content,
+    isMock: s.isMock,
+    model: s.model,
+    createdAt: s.createdAt.toISOString(),
+  };
+};
+
+export async function listSummaries(limit = 50) {
+  const rows = await prisma.aiSummary.findMany({ orderBy: { createdAt: "desc" }, take: limit });
+  return rows.map(summaryDTO);
 }

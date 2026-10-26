@@ -29,7 +29,10 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
 
 function OverviewContent({ data, days }: { data: Awaited<ReturnType<typeof getDashboardData>>; days: number }) {
   const cur = data.current.totals;
-  const prev = data.previous.totals;
+  // Without full data for the previous period, every change would be misleading.
+  const prev = data.previous.complete
+    ? data.previous.totals
+    : { sessions: 0, leads: 0, cost: 0, conversionRate: null, cpl: null };
   const previousLabel = `vs previous ${days} days`;
   const targets = data.targets.status === "ok" ? data.targets.targets : {};
 

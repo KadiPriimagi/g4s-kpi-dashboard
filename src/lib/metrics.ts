@@ -248,16 +248,19 @@ export async function targetsForRange(f: Filters, channel = "All"): Promise<Targ
 
 export interface DashboardData {
   current: PeriodData;
-  previous: { from: string; to: string; totals: Kpis };
+  /** complete = false when the previous period starts before the first day of data (comparison would mislead). */
+  previous: { from: string; to: string; complete: boolean; totals: Kpis; byChannel: ChannelRow[] };
   targets: TargetsResult;
 }
 
 export async function getDashboardData(f: Filters): Promise<DashboardData> {
   const prev = previousPeriod(f);
-  const [current, previous, targets] = await Promise.all([
+  const [current, previous, targets, firstDay] = await Promise.all([
     loadPeriod(f),
     loadPeriod({ ...f, ...prev }),
     targetsForRange(f),
+    prisma.dailyMetric.aggregate({ _min: { date: true } }),
   ]);
-  return { current, previous: { ...prev, totals: previous.totals }, targets };
+  const complete = firstDay._min.date != null && toISODate(firstDay._min.date) <= prev.from;
+  return { current, previous: { ...prev, complete, totals: previous.totals, byChannel: previous.byChannel }, targets };
 }

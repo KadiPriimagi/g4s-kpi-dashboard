@@ -90,3 +90,10 @@ Modern, clean business dashboard. Slate neutrals, dark red primary accent, green
 - Previous period = the same number of days immediately before the selected range.
 - Auth: signed httpOnly secure cookie (HMAC of `APP_PASSWORD`), 30 days, checked in middleware; logout button.
 - Only aggregated numbers are sent to Gemini.
+
+### Implementation notes (additions made while building)
+- `DailyMetric` also has `source` and `medium` columns, needed for the Traffic Sources page.
+- Campaigns: besides the three in the spec, Meta has a baseline campaign **"Always-on Meta"**, and non-paid traffic uses the campaign `(none)` (shown as "No campaign (organic)").
+- The cost form only allows channel **Meta** and the campaigns "Always-on Meta" / "Autumn image campaign", so manual costs can never double-count Google costs.
+- Change vs. previous period is hidden ("No comparison data") when the previous period starts before the first day of demo data.
+- Targets are shown on Overview for channel "All"; channel-specific targets are stored and managed on the Targets page.
