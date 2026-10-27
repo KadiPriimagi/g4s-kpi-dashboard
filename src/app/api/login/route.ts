@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const password = process.env.APP_PASSWORD;
   if (!password) {
     return NextResponse.json(
-      { error: "Login is not configured yet. Set the APP_PASSWORD environment variable on Railway." },
+      { error: "Login is not configured yet. Set the APP_PASSWORD environment variable on Render." },
       { status: 503 },
     );
   }

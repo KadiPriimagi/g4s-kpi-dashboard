@@ -2,15 +2,15 @@
 
 ## Project
 
-A fully functional, responsive marketing KPI dashboard web application for G4S Eesti, a security services company. The app runs on Railway (cloud hosting) with a Railway PostgreSQL database. Users open the app through its public Railway URL in desktop and mobile browsers; nothing runs on the developer's computer. The app uses realistic demo data (no real company data). The user interface language is English.
+A fully functional, responsive marketing KPI dashboard web application for G4S Eesti, a security services company. The app runs on Render (cloud hosting) with a Render PostgreSQL database. Users open the app through its public Render URL (https://g4s-kpi-dashboard.onrender.com) in desktop and mobile browsers; nothing runs on the developer's computer. The app uses realistic demo data (no real company data). The user interface language is English.
 
 ## Tech stack
 
 - Framework: Next.js (App Router) with TypeScript.
 - Styling: Tailwind CSS. Icons: Lucide-React. Components: shadcn/ui. Charts: Recharts.
-- Database: PostgreSQL (hosted on Railway), accessed with the Prisma ORM.
+- Database: PostgreSQL (hosted on Render), accessed with the Prisma ORM.
 - AI: Google Gemini API for written summaries. Key from `GEMINI_API_KEY`, model from `GEMINI_MODEL` (default `gemini-2.5-flash`). If the key is missing, return a clearly labelled mock summary instead of failing.
-- Configuration: database connection string from `DATABASE_URL` (set in Railway). Never hard-code credentials. Provide `.env.example`; `.env` is in `.gitignore`.
+- Configuration: database connection string from `DATABASE_URL` (set on Render). Never hard-code credentials. Provide `.env.example`; `.env` is in `.gitignore`.
 - Access: simple password protection. Password from `APP_PASSWORD`. Login page; the user stays logged in with a secure cookie.
 - `npm run build` must succeed **without** `DATABASE_URL`: every page and API route that reads the database is dynamic and nothing touches the database at build time.
 
