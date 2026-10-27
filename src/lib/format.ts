@@ -20,12 +20,18 @@ export function formatPercent(v: number | null | undefined) {
   return v == null || !Number.isFinite(v) ? DASH : `${pct1.format(v)}%`;
 }
 
+/** Rounds to one decimal first so tiny changes show as "0.0", not "-0.0". */
+function formatSigned(v: number, suffix: string) {
+  const r = Math.round(v * 10) / 10 || 0;
+  return `${r > 0 ? "+" : ""}${pct1.format(r)}${suffix}`;
+}
+
 export function formatSignedPercent(v: number) {
-  return `${v > 0 ? "+" : ""}${pct1.format(v)}%`;
+  return formatSigned(v, "%");
 }
 
 export function formatSignedPoints(v: number) {
-  return `${v > 0 ? "+" : ""}${pct1.format(v)} pp`;
+  return formatSigned(v, " pp");
 }
 
 /** CPL is shown as "–" when there is no cost. */

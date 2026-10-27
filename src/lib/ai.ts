@@ -1,9 +1,9 @@
 import "server-only";
 import { GoogleGenAI } from "@google/genai";
 import { AUTO_COST_CHANNELS, MANUAL_COST_CHANNELS, campaignLabel } from "./constants";
-import { addDays, daysBetween, eachDay } from "./dates";
+import { addDays, daysBetween, eachDay, formatDateLabel } from "./dates";
 import type { Filters } from "./filters";
-import { percentChange } from "./format";
+import { formatEUR, formatNumber, formatPercent, percentChange } from "./format";
 import type { DashboardData } from "./metrics";
 
 export interface Recommendation {
@@ -96,7 +96,8 @@ export function buildPayload(f: Filters, data: DashboardData) {
 
 const SYSTEM_INSTRUCTION = `You are a senior performance-marketing analyst for G4S Eesti, a security services company in Estonia
 (alarm systems, guarding, video surveillance, for homes and businesses). You receive aggregated marketing KPI data.
-Write in clear, concise English for a marketing manager. Be concrete and quote numbers (EUR, %, counts).
+Write in clear, concise English for a marketing manager. Be concrete and quote numbers (EUR, %, counts). Write amounts and counts with comma thousand separators
+(e.g. €18,191 and 12,345 sessions; unit costs with two decimals, e.g. €42.50).
 Channels with "paid": false have no ad cost (organic search, direct, newsletter email, referral): never recommend ad budget
 for them, but you may recommend effort (e.g. SEO content, newsletter frequency). A null CPL means there is no cost.
 Compare with the previous period and the targets when available.`;
@@ -180,7 +181,8 @@ export async function generateWithGemini(payload: ReturnType<typeof buildPayload
 export function mockSummary(payload: ReturnType<typeof buildPayload>): SummaryContent {
   const { current, previous } = payload.totals;
   const fmtPct = (v: number | null) => (v == null ? "n/a" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`);
-  const eur = (v: number | null) => (v == null ? "–" : `€${v.toFixed(2)}`);
+  const eur = (v: number | null) => formatEUR(v, 2);
+  const fullDate = { day: "numeric", month: "short", year: "numeric" } as const;
   const leadsChange = previous ? percentChange(current.leads, previous.leads) : null;
   const cplChange = previous ? percentChange(current.cplEur, previous.cplEur) : null;
 
@@ -190,22 +192,22 @@ export function mockSummary(payload: ReturnType<typeof buildPayload>): SummaryCo
   const topLeads = [...payload.channels].sort((a, b) => b.leads - a.leads)[0];
 
   const findings = [
-    best ? `${best.channel} had the lowest cost per lead at ${eur(best.cplEur)} (${best.leads} leads).` : "No paid channel had both cost and leads.",
+    best ? `${best.channel} had the lowest cost per lead at ${eur(best.cplEur)} (${formatNumber(best.leads)} leads).` : "No paid channel had both cost and leads.",
     worst ? `${worst.channel} had the highest cost per lead at ${eur(worst.cplEur)}.` : "Only one paid channel had cost data.",
-    topLeads ? `${topLeads.channel} brought the most leads (${topLeads.leads}), with a conversion rate of ${topLeads.conversionRatePct ?? "–"}%.` : "No leads in this period.",
+    topLeads ? `${topLeads.channel} brought the most leads (${formatNumber(topLeads.leads)}), with a conversion rate of ${formatPercent(topLeads.conversionRatePct)}.` : "No leads in this period.",
   ];
 
   const recommendations: Recommendation[] = paid.map((c, i) => ({
     channel: c.channel,
     action: i === 0 && paid.length > 1 ? "increase" : i === paid.length - 1 && paid.length > 1 ? "decrease" : "maintain",
-    reason: `CPL ${eur(c.cplEur)} with ${c.leads} leads (${fmtPct(c.cplChangePct)} CPL vs previous period).`,
+    reason: `CPL ${eur(c.cplEur)} with ${formatNumber(c.leads)} leads (${fmtPct(c.cplChangePct)} CPL vs previous period).`,
   }));
 
   return {
     summary:
-      `In ${payload.period.from} – ${payload.period.to} the website had ${current.sessions.toLocaleString("en-US")} sessions and ` +
-      `${current.leads} leads (${fmtPct(leadsChange)} vs the previous period). Total cost was €${(current.costEur ?? 0).toFixed(0)} ` +
-      `and the cost per lead was ${eur(current.cplEur)} (${fmtPct(cplChange)}). Conversion rate: ${current.conversionRatePct ?? "–"}%.`,
+      `In ${formatDateLabel(payload.period.from, fullDate)} – ${formatDateLabel(payload.period.to, fullDate)} the website had ${formatNumber(current.sessions)} sessions and ` +
+      `${formatNumber(current.leads)} leads (${fmtPct(leadsChange)} vs the previous period). Total cost was ${formatEUR(current.costEur ?? 0)} ` +
+      `and the cost per lead was ${eur(current.cplEur)} (${fmtPct(cplChange)}). Conversion rate: ${formatPercent(current.conversionRatePct)}.`,
     findings,
     recommendations,
   };

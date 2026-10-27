@@ -72,13 +72,18 @@ function Funnel({ totals, channel }: { totals: Totals; channel: string | null })
                   </div>
                   <div className="flex justify-center">
                     <div
-                      className="flex h-11 items-center justify-center rounded-lg text-sm font-semibold text-primary-foreground shadow-sm"
+                      className="relative flex h-11 items-center justify-center rounded-lg text-sm font-semibold text-primary-foreground shadow-sm"
                       style={{
                         width: `${Math.max(6, s.ofTotal ?? 0)}%`,
                         background: `color-mix(in oklch, var(--primary) ${100 - i * 14}%, var(--chart-2))`,
                       }}
                     >
-                      <span className="px-2 tabular-nums">{formatNumber(s.count)}</span>
+                      {/* Narrow bars can't fit the number, so it goes next to the bar instead. */}
+                      {(s.ofTotal ?? 0) >= 25 ? (
+                        <span className="px-2 tabular-nums">{formatNumber(s.count)}</span>
+                      ) : (
+                        <span className="absolute left-full ml-2 whitespace-nowrap text-foreground tabular-nums">{formatNumber(s.count)}</span>
+                      )}
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground md:text-right">

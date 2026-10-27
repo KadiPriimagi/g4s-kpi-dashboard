@@ -113,7 +113,7 @@ function SummaryCard({ summary, highlight, defaultOpen = false }: { summary: Sum
   return (
     <Card className={cn("gap-0 py-0 shadow-sm", highlight && "ring-2 ring-primary/40")}>
       <CardHeader className="p-0">
-        <button onClick={() => setOpen(!open)} className="flex w-full items-start gap-3 p-5 text-left">
+        <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-start gap-3 p-5 text-left">
           <div className="min-w-0 flex-1">
             <CardTitle className="flex flex-wrap items-center gap-2 text-base">
               {filtersLabel(summary.dateFrom, summary.dateTo, summary.filters.campaign, summary.filters.language)}
